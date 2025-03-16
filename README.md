@@ -1,2 +1,6 @@
 # win-router-manager
-manager windows router
+---
+
+* Display Network Interface Information
+* manage routes
+* manage port forwarding
