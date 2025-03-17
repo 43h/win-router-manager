@@ -155,6 +155,7 @@ func (m *DataModel) Value(row, col int) interface{} {
 }
 
 func main() {
+	go tray()
 	newWin := new(walk.MainWindow)
 	dataModel := NewDataModel()
 	MainWindow{
