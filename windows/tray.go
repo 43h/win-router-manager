@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package windows
 
 import (
 	"log"
@@ -12,13 +12,9 @@ import (
 	"github.com/lxn/walk"
 )
 
-func tray() {
+func tray(window *walk.MainWindow) {
 	// We need either a walk.MainWindow or a walk.Dialog for their message loop.
 	// We will not make it visible in this example, though.
-	mw, err := walk.NewMainWindow()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// We load our icon from a file.
 	icon, err := walk.Resources.Icon("resource/ok.ico")
@@ -27,12 +23,11 @@ func tray() {
 	}
 
 	// Create the notify icon and make sure we clean it up on exit.
-	ni, err := walk.NewNotifyIcon(mw)
+	ni, err := walk.NewNotifyIcon(window)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer ni.Dispose()
-
+	
 	// Set the icon and a tool tip text.
 	if err := ni.SetIcon(icon); err != nil {
 		log.Fatal(err)
@@ -75,7 +70,4 @@ func tray() {
 	if err := ni.ShowInfo("Walk NotifyIcon Example", "Click the icon to show again."); err != nil {
 		log.Fatal(err)
 	}
-
-	// Run the message loop.
-	mw.Run()
 }
