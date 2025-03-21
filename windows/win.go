@@ -1,17 +1,12 @@
 package windows
 
 import (
-	//"fmt"
-	//"main/logger"
-	//"math/rand"
-	//"sort"
-	//"strings"
-	//"time"
+	"log"
 	"main/logger"
 	"syscall"
 
 	"github.com/lxn/walk"
-	//. "github.com/lxn/walk/declarative"
+	. "github.com/lxn/walk/declarative"
 )
 
 // 主窗口大小
@@ -22,21 +17,65 @@ var tableView *walk.TableView
 var sbi *walk.StatusBarItem
 
 type Windows struct {
-	mWin *walk.MainWindow
-	mNI  *walk.NotifyIcon
+	mWin              *walk.MainWindow
+	mNI               *walk.NotifyIcon
+	mContentContainer *walk.Composite
 }
 
 var windows = Windows{}
 
 func CreateWin() bool {
-	mWin, err := walk.NewMainWindow()
-	if err != nil {
-		logger.LOGE(err)
-		return false
-	} else {
-		windows.mWin = mWin
+
+	// 创建主窗口
+	mainWindow := MainWindow{
+		AssignTo: &windows.mWin,
+		Title:    "Golang Walk 示例",
+		MinSize:  Size{Width: 600, Height: 400},
+		Layout:   HBox{Margins: Margins{10, 10, 10, 10}},
+		Children: []Widget{
+			Composite{
+				Layout:  VBox{Margins: Margins{0, 0, 10, 0}},
+				MaxSize: Size{Width: 150},
+				Children: []Widget{
+					PushButton{
+						Text: "页面 1",
+						OnClicked: func() {
+							updateContent(windows.mContentContainer, "这是页面 1 的内容")
+						},
+					},
+					PushButton{
+						Text: "页面 2",
+						OnClicked: func() {
+							updateContent(windows.mContentContainer, "这是页面 2 的内容")
+						},
+					},
+				},
+			},
+			Composite{
+				AssignTo: &windows.mContentContainer,
+				Layout:   VBox{},
+				Children: []Widget{
+					Label{Text: "请选择左侧菜单项"},
+				},
+			},
+		},
 	}
-	initWin()
+	// 修改窗口关闭事件
+	windows.mWin.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+		*canceled = true    // 阻止默认关闭行为
+		windows.mWin.Hide() // 隐藏窗口
+		log.Println("窗口已隐藏到托盘")
+	})
+
+	//// 窗口最小化时隐藏到托盘
+	//windows.mWin.Minimized().Attach(func() {
+	//	windows.mWin.Hide()
+	//})
+	// 创建窗口并初始化托盘
+	if err := mainWindow.Create(); err != nil {
+		log.Fatal("创建窗口失败: ", err)
+		return false
+	}
 	return true
 }
 
@@ -327,4 +366,21 @@ func DestroyWin() {
 			logger.LOGE(err.Error())
 		}
 	}
+}
+
+// 更新右侧内容
+func updateContent(container *walk.Composite, text string) {
+	children := container.Children()
+	// 遍历并清理现有子控件
+	for i := 0; i < children.Len(); i++ {
+		child := children.At(i)
+		child.Dispose()
+	}
+	// 添加新内容
+	label, err := walk.NewLabel(container)
+	if err != nil {
+		logger.LOGE("创建 Label 失败: %v" + err.Error())
+		return
+	}
+	label.SetText(text)
 }
