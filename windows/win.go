@@ -1,17 +1,15 @@
 package windows
 
 import (
-	"log"
-	"main/logger"
-	"syscall"
+	. "main/logger"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 )
 
 // 主窗口大小
-const MainWinMinWidth = 600
-const MainWinMinHeight = 400
+const MainWinWidth = 150
+const MainWinHeight = 100
 
 var tableView *walk.TableView
 var sbi *walk.StatusBarItem
@@ -25,108 +23,76 @@ type Windows struct {
 var windows = Windows{}
 
 func CreateWin() bool {
-
-	// 创建主窗口
 	mainWindow := MainWindow{
 		AssignTo: &windows.mWin,
-		Title:    "Golang Walk 示例",
-		MinSize:  Size{Width: 600, Height: 400},
-		Layout:   HBox{Margins: Margins{10, 10, 10, 10}},
+		Title:    "Windows路由管理",
+		MinSize:  Size{Width: MainWinWidth, Height: MainWinHeight},
+		MaxSize:  Size{Width: MainWinWidth, Height: MainWinHeight},
+		Layout:   HBox{},
 		Children: []Widget{
 			Composite{
-				Layout:  VBox{Margins: Margins{0, 0, 10, 0}},
-				MaxSize: Size{Width: 150},
+				Background: nil,
+				Border:     true,
+				Alignment:  AlignHNearVCenter,
+				Layout:     VBox{},
+				MinSize:    Size{Height: MainWinHeight, Width: MainWinWidth / 3},
+				MaxSize:    Size{Height: MainWinHeight, Width: MainWinWidth / 3},
 				Children: []Widget{
 					PushButton{
-						Text: "页面 1",
+						Text:    "网口信息",
+						MinSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
+						MaxSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
 						OnClicked: func() {
 							updateContent(windows.mContentContainer, "这是页面 1 的内容")
 						},
 					},
 					PushButton{
-						Text: "页面 2",
+						Text:    "路由信息",
+						MinSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
+						MaxSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
 						OnClicked: func() {
 							updateContent(windows.mContentContainer, "这是页面 2 的内容")
+						},
+					},
+					PushButton{
+						Text:    "端口转发",
+						MinSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
+						MaxSize: Size{Height: MainWinHeight, Width: MainWinWidth / 3},
+						OnClicked: func() {
+							updateContent(windows.mContentContainer, "这是页面 3 的内容")
 						},
 					},
 				},
 			},
 			Composite{
-				AssignTo: &windows.mContentContainer,
-				Layout:   VBox{},
+				AssignTo:      &windows.mContentContainer,
+				Border:        true,
+				Alignment:     AlignHNearVCenter,
+				Layout:        VBox{},
+				StretchFactor: 2,
 				Children: []Widget{
 					Label{Text: "请选择左侧菜单项"},
 				},
 			},
 		},
 	}
-	// 修改窗口关闭事件
-	windows.mWin.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
-		*canceled = true    // 阻止默认关闭行为
-		windows.mWin.Hide() // 隐藏窗口
-		log.Println("窗口已隐藏到托盘")
-	})
+	//// 修改窗口关闭事件
+	//windows.mWin.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+	//	*canceled = true    // 阻止默认关闭行为
+	//	windows.mWin.Hide() // 隐藏窗口
+	//	log.Println("窗口已隐藏到托盘")
+	//})
 
 	//// 窗口最小化时隐藏到托盘
 	//windows.mWin.Minimized().Attach(func() {
 	//	windows.mWin.Hide()
 	//})
-	// 创建窗口并初始化托盘
+
 	if err := mainWindow.Create(); err != nil {
-		log.Fatal("创建窗口失败: ", err)
+		LOGE("创建窗口失败: ", err)
 		return false
 	}
 	return true
-}
-
-func initWin() bool {
-	if err := windows.mWin.SetTitle("路由管理"); err != nil {
-		logger.LOGE(err)
-		return false
-	}
-	if err := windows.mWin.SetLayout(walk.NewVBoxLayout()); err != nil {
-		logger.LOGE(err)
-		return false
-	}
-
-	//set windows location
-	screenWidth, screenHeight := getScreenSize()
-	windowWidth := MainWinMinWidth
-	windowHeight := MainWinMinHeight
-	x := (screenWidth - windowWidth) / 2
-	y := (screenHeight - windowHeight) / 2
-	if err := windows.mWin.SetBounds(walk.Rectangle{
-		X:      x,
-		Y:      y,
-		Width:  windowWidth,
-		Height: windowHeight,
-	}); err != nil {
-		logger.LOGE(err)
-		return false
-	}
-
-	if err := windows.mWin.SetSize(walk.Size{Width: MainWinMinWidth, Height: MainWinMinHeight}); err != nil {
-		logger.LOGE(err)
-		return false
-	}
-	windows.mWin.SetVisible(true)
-	if err := windows.mWin.SetFocus(); err != nil {
-		logger.LOGE(err)
-		return false
-	}
-	return true
-}
-
-func getScreenSize() (int, int) {
-	user32 := syscall.NewLazyDLL("user32.dll")
-	getSystemMetrics := user32.NewProc("GetSystemMetrics")
-
-	// 0 = SM_CXSCREEN (屏幕宽度)
-	// 1 = SM_CYSCREEN (屏幕高度)
-	screenWidth, _, _ := getSystemMetrics.Call(0)
-	screenHeight, _, _ := getSystemMetrics.Call(1)
-
-	return int(screenWidth), int(screenHeight)
 }
 
 //
@@ -363,7 +329,7 @@ func DestroyWin() {
 	if windows.mNI != nil {
 		err := windows.mNI.Dispose()
 		if err != nil {
-			logger.LOGE(err.Error())
+			LOGE(err.Error())
 		}
 	}
 }
@@ -379,7 +345,7 @@ func updateContent(container *walk.Composite, text string) {
 	// 添加新内容
 	label, err := walk.NewLabel(container)
 	if err != nil {
-		logger.LOGE("创建 Label 失败: %v" + err.Error())
+		LOGE("创建 Label 失败: %v" + err.Error())
 		return
 	}
 	label.SetText(text)
