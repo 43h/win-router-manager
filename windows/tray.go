@@ -12,7 +12,7 @@ import (
 	"github.com/lxn/walk"
 )
 
-func tray(window *walk.MainWindow) {
+func InitTray(window *walk.MainWindow) {
 	// We need either a walk.MainWindow or a walk.Dialog for their message loop.
 	// We will not make it visible in this example, though.
 
@@ -27,7 +27,7 @@ func tray(window *walk.MainWindow) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// Set the icon and a tool tip text.
 	if err := ni.SetIcon(icon); err != nil {
 		log.Fatal(err)
@@ -70,4 +70,29 @@ func tray(window *walk.MainWindow) {
 	if err := ni.ShowInfo("Walk NotifyIcon Example", "Click the icon to show again."); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// 初始化系统托盘
+func initTray(w *walk.MainWindow) {
+	//ni.MouseDown().Attach(func(x, y int, btn walk.MouseButton) {
+	//	if btn == walk.RightButton {
+	//		menu := walk.NewMenu()
+	//		menu.Items().Add(walk.NewMenuItem(&walk.Action{
+	//			Text: "显示窗口",
+	//			OnTriggered: func() {
+	//				w.Show()
+	//				w.SetWindowState(walk.WindowStateNormal)
+	//			},
+	//		}))
+	//		menu.Items().Add(walk.NewMenuItem(&walk.Action{
+	//			Text: "退出",
+	//			OnTriggered: func() {
+	//				walk.App().Exit(0)
+	//			},
+	//		}))
+	//		menu.ShowPopupMenu(w, x, y)
+	//	}
+	//})
+
+	log.Println("托盘初始化完成")
 }
